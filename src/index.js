@@ -3,12 +3,18 @@
 import mongoose from "mongoose";
 import { DB_NAME } from "./constants.js";
 
+import express from "express"
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";
+
+import userRoutes from "./routes/user.routes.js";
 
 dotenv.config({
     path: './env'
 })
+
+const app = express();
+app.use(express.json());
 
 connectDB()
 .then(() => {
@@ -19,6 +25,8 @@ connectDB()
 .catch((err) => {
     console.log("MONGO DB connection failed!!!" , err);
 })
+
+app.use("/api/v1/users", userRoutes);
 
 /*  Approach 1
 import express from "express"
