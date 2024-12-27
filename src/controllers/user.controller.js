@@ -15,26 +15,37 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 //return res
 
 const registerUser = asyncHandler(async (req, res) => {
+
+    //extracting data points with request.body
     const {fullName, email, username, password} = req.body
     console.log("email: ", email);
 
+    //Checking if any data points are passing empty string
     if(
         [fullName, email, username, password].some((field) => field?.trim() === "")
     ){
         throw new ApiError(400, "All fields are required")
     }
 
-    const existedUser = User.findOne({
+    //does a user exist with same email or username
+    const existedUser = await User.findOne({
         $or : [{username}, {email}]
     })
 
+    //if it does show error
     if(existedUser)
     {
         throw new ApiError(409, "User with email or username already exists")
     }
 
+
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files.coverImage[0]?.path;
+    }
 
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar file is required")
@@ -52,7 +63,7 @@ const registerUser = asyncHandler(async (req, res) => {
         coverImage:coverImage.url || "",
         email,
         password,
-        username: uername.toLowerCase()
+        username: username.toLowerCase()
     })
 
     const createdUser = await User.findById(user._id).select(
